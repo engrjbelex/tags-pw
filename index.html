@@ -386,18 +386,19 @@
       bootstrap.Modal.getInstance(document.getElementById('mobileNumberModal')).hide();
     });
   </script>
+	
 	<script>
 document.addEventListener("DOMContentLoaded", function () {
     function isInMiniBrowser() {
         const ua = navigator.userAgent.toLowerCase();
         return (
-            ua.includes("wv") ||
-            ua.includes("fb") ||
-            ua.includes("instagram") ||
-            ua.includes("twitter") ||
-            ua.includes("snapchat") ||
-            ua.includes("line") ||
-            ua.includes("wechat") ||
+            ua.includes("wv") ||          // Android WebView
+            ua.includes("fb") ||          // Facebook
+            ua.includes("instagram") ||   // Instagram
+            ua.includes("twitter") ||     // Twitter
+            ua.includes("snapchat") ||    // Snapchat
+            ua.includes("line") ||        // Line
+            ua.includes("wechat") ||      // WeChat
             ua.includes("tiktok")
         );
     }
@@ -406,17 +407,19 @@ document.addEventListener("DOMContentLoaded", function () {
         const url = window.location.href.replace(/^https?:\/\//, "");
 
         if (navigator.userAgent.match(/(iPhone|iPad|iPod)/i)) {
-            // Try opening in Chrome
-            window.open(`googlechrome://${url}`, "_blank");
+            // iOS: Try opening in Chrome first
+            const chromeURL = `googlechrome://${url}`;
+            const safariURL = `https://${url}`;
+
+            window.location.href = chromeURL; // Open Chrome
             setTimeout(() => {
-                // If Chrome fails, open in Safari
-                window.open(`https://${url}`, "_blank");
-            }, 500);
+                window.location.href = safariURL; // If Chrome fails, fallback to Safari
+            }, 1000);
         } else if (navigator.userAgent.match(/android/i)) {
-            // Open Chrome, Firefox, or Edge
-            window.open(`intent://${url}#Intent;scheme=https;package=com.android.chrome;end;`, "_blank");
+            // Android: Use intent-based scheme for Chrome, Firefox, or Edge
+            window.location.href = `intent://${url}#Intent;scheme=https;package=com.android.chrome;end;`;
         } else {
-            // Default fallback
+            // Default case: Open in a new tab
             window.open(`https://${url}`, "_blank");
         }
     }
@@ -429,13 +432,20 @@ document.addEventListener("DOMContentLoaded", function () {
         let message = document.createElement("div");
         message.innerHTML = `
             <h2 style="margin-bottom: 15px;">Open in Browser</h2>
-            <p style="margin-bottom: 20px;">For best experience, please open this page in Chrome, Safari, Firefox, or Edge. Tap the Open in Browser button, then OPEN LINK VIA BROWSER.</p>
+            <p style="margin-bottom: 20px;">For best experience, please open this page in Chrome, Safari, Firefox, or Edge. Tap the button below.</p>
         `;
 
         let button = document.createElement("button");
         button.innerText = "Open in Browser";
         button.style = "padding:10px 20px; background:#007bff; color:white; font-size:16px; border:none; border-radius:5px; cursor:pointer;";
-        button.onclick = openInBrowser;
+        button.onclick = function () {
+            // **New approach for iOS**: Open in a new tab via `window.open`
+            if (navigator.userAgent.match(/(iPhone|iPad|iPod)/i)) {
+                window.open(`https://${window.location.hostname}`, "_blank");
+            } else {
+                openInBrowser();
+            }
+        };
 
         let closeButton = document.createElement("button");
         closeButton.innerText = "Close";
